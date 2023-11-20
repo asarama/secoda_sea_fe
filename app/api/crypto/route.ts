@@ -22,7 +22,10 @@ export async function GET(req: Request) {
 const basicFetch = async <ReturnType>(endpoint: string, headers: any): Promise<ReturnType> => {
     const response = await fetch(endpoint, {headers: headers})
 
-    if (!response.ok) throw new Error('Error!')
+    // TODO: Seems like this is the best place to troubleshoot the random errors
+    if (!response.ok) {
+        response.text().then(text => { throw new Error(text) })
+    }
 
     const data = await response.json();
 
