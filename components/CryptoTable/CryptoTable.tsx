@@ -12,7 +12,6 @@ import {
     Center,
     TextInput,
     rem,
-    keys,
 } from '@mantine/core'
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons-react'
 import classes from './styles.module.css'
@@ -63,10 +62,14 @@ class CryptoService {
 
     constructor() {
         makeAutoObservable(this)
+
+        // Get an the initial set of data
         this.fetchData()
+
+        // TODO: Seems like this API fails when the request interval is 1 second
         setInterval(() => {
             this.fetchData()
-        }, 1000)
+        }, 5000)
     }
 
     updateNameFilter(newNameFilter: string) {
@@ -112,7 +115,6 @@ class CryptoService {
 }
 
 const cryptoService = new CryptoService()
-
 
 interface ThProps {
     children: React.ReactNode;
