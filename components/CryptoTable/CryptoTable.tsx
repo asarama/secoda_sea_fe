@@ -1,8 +1,6 @@
 "use client"
 // From https://ui.mantine.dev/component/table-sort/
 
-
-import { useState } from 'react'
 import {
     Table,
     ScrollArea,
@@ -21,28 +19,15 @@ import { makeAutoObservable } from "mobx"
 import { observer } from "mobx-react-lite"
 
 interface RowData {
+    marketCap: number
     cmcRank: number
     name: string
 }
 
-const data: RowData[] = [
-    {
-        cmcRank: 1,
-        name: 'One',
-    },
-    {
-        cmcRank: 2,
-        name: 'Two',
-    },
-    {
-        cmcRank: 3,
-        name: 'Three',
-    },
-];
-
 // TODO: There should be a more scalable way to do this
 // https://dev.to/scooperdev/generate-array-of-all-an-interfaces-keys-with-typescript-4hbf
 const columns = [
+    "marketCap" as keyof RowData, 
     "cmcRank" as keyof RowData, 
     "name" as keyof RowData,
 ]
@@ -80,6 +65,15 @@ class CryptoService {
         this.filterString = newNameFilter
     }
 
+    // TODO: Add to doc diagram
+    updateSorting(field: keyof RowData) {
+        this.updateSortBy(field)
+
+        // TODO: Clean up this logic. This takes too long to read
+        const reversed = field === this.sortBy ? this.sortDirection === SortDirections.asc : false
+        this.updateSortDirection(reversed ? SortDirections.desc : SortDirections.asc)
+    }
+
     // TODO: Update doc diagram action name
     updateSortBy(newSortBy: keyof RowData) {
         this.sortBy = newSortBy
@@ -95,7 +89,8 @@ class CryptoService {
     }
 
     get requestUrl(): string {
-        return CryptoService.baseServerUrl + "start=1&limit=2&sort=market_cap&sort_dir=desc&cryptocurrency_type=all&tag=all"
+        // TODO: Update the search parameters to include updates to sort, and sort_dir
+        return CryptoService.baseServerUrl + "start=1&limit=10&sort=market_cap&sort_dir=desc&cryptocurrency_type=all&tag=all"
     }
 
     get displayData(): RowData[] {
@@ -104,6 +99,7 @@ class CryptoService {
         // TODO: Add type to dataRow
         const flatData = this.rawData.map((dataRow) =>{
             return {
+                marketCap: dataRow.quote.USD.market_cap,
                 cmcRank: dataRow.cmc_rank,
                 name: dataRow.name
             }
@@ -129,8 +125,6 @@ class CryptoService {
     async fetchData() {
         const res = await fetch(this.requestUrl)
         const resJson = await res.json()
-        // console.log(resJson)
-
         this.updateRawData(resJson.data)
     }
 }
@@ -163,17 +157,11 @@ const Th = ({ children, reversed, sorted, onSort }: ThProps) => {
 }
 
 const CryptoTable = observer(() => {
-    const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
-    const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.currentTarget;
         cryptoService.updateFilterString(value)
     }
-
-    const setSorting = (field: keyof RowData) => {
-        console.log(field)
-    };
 
     const rows = cryptoService.displayData.map((row: RowData) => (
         <Table.Tr key={row.name}>
@@ -201,9 +189,9 @@ const CryptoTable = observer(() => {
                     <Table.Tr>
                         {columns.map((column) => {
                             return <Th
-                                sorted={sortBy === column}
-                                reversed={reverseSortDirection}
-                                onSort={() => setSorting(column)}
+                                sorted={cryptoService.sortBy === column}
+                                reversed={cryptoService.sortDirection === SortDirections.desc}
+                                onSort={() => cryptoService.updateSorting(column)}
                                 key={column}
                             >
                                 {column}
@@ -216,7 +204,7 @@ const CryptoTable = observer(() => {
                         rows
                     ) : (
                         <Table.Tr>
-                            <Table.Td colSpan={Object.keys(data[0]).length}>
+                            <Table.Td colSpan={columns.length}>
                                 <Text fw={500} ta="center">
                                     Nothing found
                                 </Text>
