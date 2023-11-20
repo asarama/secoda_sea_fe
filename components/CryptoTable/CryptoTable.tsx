@@ -17,30 +17,7 @@ import {
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons-react'
 import classes from './styles.module.css'
 
-interface ThProps {
-    children: React.ReactNode;
-    reversed: boolean;
-    sorted: boolean;
-    onSort(): void;
-}
-
-const Th = ({ children, reversed, sorted, onSort }: ThProps) => {
-    const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
-    return (
-        <Table.Th className={classes.th}>
-            <UnstyledButton onClick={onSort} className={classes.control}>
-                <Group justify="space-between">
-                    <Text fw={500} fz="sm">
-                        {children}
-                    </Text>
-                    <Center className={classes.icon}>
-                        <Icon style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                    </Center>
-                </Group>
-            </UnstyledButton>
-        </Table.Th>
-    );
-}
+import { makeAutoObservable } from "mobx"
 
 interface RowData {
     cmcRank: number
@@ -68,6 +45,99 @@ const columns = [
     "cmcRank" as keyof RowData, 
     "name" as keyof RowData,
 ]
+
+// Ways we can sort columns
+enum SortDirections {
+    desc,
+    asc,
+}
+
+class CryptoService {
+
+    static baseServerUrl = "http://localhost:3000/api/crypto?"
+    // TODO: Add an interface for this
+    rawData: any[] = []
+    nameFilter: string = ""
+    sortBy: keyof RowData = columns[0]
+    sortDirection: SortDirections = SortDirections.desc
+
+    constructor() {
+        makeAutoObservable(this)
+        this.fetchData()
+        setInterval(() => {
+            this.fetchData()
+        }, 1000)
+    }
+
+    updateNameFilter(newNameFilter: string) {
+        this.nameFilter = newNameFilter
+    }
+
+    // TODO: Update doc diagram action name
+    updateSortBy(newSortBy: keyof RowData) {
+        this.sortBy = newSortBy
+    }
+
+    updateSortDirection(newSortDirection: SortDirections) {
+        this.sortDirection = newSortDirection
+    }
+
+    // TODO: Add to doc diagram
+    updateRawData(newRawData: any[]) {
+        this.rawData = newRawData
+    }
+
+    get requestUrl(): string {
+        return CryptoService.baseServerUrl + "start=1&limit=2&sort=market_cap&sort_dir=desc&cryptocurrency_type=all&tag=all"
+    }
+
+    get displayData(): RowData[] {
+        // TODO: Add type to dataRow
+        return this.rawData.map((dataRow) =>{
+            return {
+                cmcRank: dataRow.cmc_rank,
+                name: dataRow.name
+            }
+        })
+    }
+
+    // This method will update our raw data which triggers the rest of our reactions
+    async fetchData() {
+        const res = await fetch(this.requestUrl)
+        const resJson = await res.json()
+        // console.log(resJson)
+
+        this.updateRawData(resJson.data)
+    }
+}
+
+const cryptoService = new CryptoService()
+
+
+interface ThProps {
+    children: React.ReactNode;
+    reversed: boolean;
+    sorted: boolean;
+    onSort(): void;
+}
+
+const Th = ({ children, reversed, sorted, onSort }: ThProps) => {
+    const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
+    return (
+        <Table.Th className={classes.th}>
+            <UnstyledButton onClick={onSort} className={classes.control}>
+                <Group justify="space-between">
+                    <Text fw={500} fz="sm">
+                        {children}
+                    </Text>
+                    <Center className={classes.icon}>
+                        <Icon style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                    </Center>
+                </Group>
+            </UnstyledButton>
+        </Table.Th>
+    );
+}
 
 const CryptoTable = () => {
     const [search, setSearch] = useState('');
