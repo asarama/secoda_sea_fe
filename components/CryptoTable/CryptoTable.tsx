@@ -43,7 +43,6 @@ class CryptoService {
     static baseServerUrl = "http://localhost:3000/api/crypto?"
     // TODO: Add an interface for this
     rawData: any[] = []
-    // TODO: Update name in doc diagram
     filterString: string = ""
     sortBy: keyof RowData = columns[0]
     sortDirection: SortDirections = SortDirections.desc
@@ -60,12 +59,10 @@ class CryptoService {
         }, 5000)
     }
 
-    // TODO: Update name in doc diagram
     updateFilterString(newNameFilter: string) {
         this.filterString = newNameFilter
     }
 
-    // TODO: Add to doc diagram
     updateSorting(field: keyof RowData) {
         this.updateSortBy(field)
 
@@ -74,7 +71,6 @@ class CryptoService {
         this.updateSortDirection(reversed ? SortDirections.desc : SortDirections.asc)
     }
 
-    // TODO: Update doc diagram action name
     updateSortBy(newSortBy: keyof RowData) {
         this.sortBy = newSortBy
     }
@@ -83,14 +79,14 @@ class CryptoService {
         this.sortDirection = newSortDirection
     }
 
-    // TODO: Add to doc diagram
     updateRawData(newRawData: any[]) {
         this.rawData = newRawData
     }
 
     get requestUrl(): string {
         // TODO: Update the search parameters to include updates to sort, and sort_dir
-        return CryptoService.baseServerUrl + "start=1&limit=10&sort=market_cap&sort_dir=desc&cryptocurrency_type=all&tag=all"
+        return CryptoService.baseServerUrl + "start=1&limit=10&sort=market_cap&sort_dir=desc&" +
+            "cryptocurrency_type=all&tag=all"
     }
 
     get displayData(): RowData[] {
