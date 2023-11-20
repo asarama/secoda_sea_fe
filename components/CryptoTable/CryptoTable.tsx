@@ -53,10 +53,9 @@ class CryptoService {
         // Get an the initial set of data
         this.fetchData()
 
-        // TODO: Seems like this API fails when the request interval is 1 second
         setInterval(() => {
             this.fetchData()
-        }, 5000)
+        }, 1000 * 60)
     }
 
     updateFilterString(newNameFilter: string) {
