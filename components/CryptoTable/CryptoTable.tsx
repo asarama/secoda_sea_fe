@@ -12,6 +12,7 @@ import {
     Center,
     TextInput,
     rem,
+    keys,
 } from '@mantine/core'
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons-react'
 import classes from './styles.module.css'
@@ -57,7 +58,8 @@ class CryptoService {
     static baseServerUrl = "http://localhost:3000/api/crypto?"
     // TODO: Add an interface for this
     rawData: any[] = []
-    nameFilter: string = ""
+    // TODO: Update name in doc diagram
+    filterString: string = ""
     sortBy: keyof RowData = columns[0]
     sortDirection: SortDirections = SortDirections.desc
 
@@ -73,8 +75,9 @@ class CryptoService {
         }, 5000)
     }
 
-    updateNameFilter(newNameFilter: string) {
-        this.nameFilter = newNameFilter
+    // TODO: Update name in doc diagram
+    updateFilterString(newNameFilter: string) {
+        this.filterString = newNameFilter
     }
 
     // TODO: Update doc diagram action name
@@ -96,13 +99,30 @@ class CryptoService {
     }
 
     get displayData(): RowData[] {
+
+        // First flatten the data to allow easier filtering
         // TODO: Add type to dataRow
-        return this.rawData.map((dataRow) =>{
+        const flatData = this.rawData.map((dataRow) =>{
             return {
                 cmcRank: dataRow.cmc_rank,
                 name: dataRow.name
             }
         })
+
+        // TODO: Move this to another function
+        // Then filter the data
+        let filteredData: any[] = []
+        if (this.filterString !== "") {
+            const query = this.filterString.toLowerCase().trim();
+            filteredData = flatData.filter((item) =>
+                keys(item).some((key) => String(item[key]).toLowerCase().includes(query))
+            )
+        } else {
+            // Use spread operator to make a deepcopy of the objects in rawData
+            filteredData = [...flatData]
+        }
+        
+        return filteredData
     }
 
     // This method will update our raw data which triggers the rest of our reactions
@@ -143,13 +163,12 @@ const Th = ({ children, reversed, sorted, onSort }: ThProps) => {
 }
 
 const CryptoTable = observer(() => {
-    const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
     const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.currentTarget;
-        console.log(value)
+        cryptoService.updateFilterString(value)
     }
 
     const setSorting = (field: keyof RowData) => {
@@ -174,7 +193,7 @@ const CryptoTable = observer(() => {
                 placeholder="Search by any field"
                 mb="md"
                 leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
-                value={search}
+                value={cryptoService.filterString}
                 onChange={handleSearchChange}
             />
             <Table horizontalSpacing="md" verticalSpacing="xs" miw={700} layout="fixed">
