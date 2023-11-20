@@ -17,6 +17,7 @@ import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@table
 import classes from './styles.module.css'
 
 import { makeAutoObservable } from "mobx"
+import { observer } from "mobx-react-lite"
 
 interface RowData {
     cmcRank: number
@@ -141,7 +142,7 @@ const Th = ({ children, reversed, sorted, onSort }: ThProps) => {
     );
 }
 
-const CryptoTable = () => {
+const CryptoTable = observer(() => {
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
     const [reverseSortDirection, setReverseSortDirection] = useState(false);
@@ -155,7 +156,7 @@ const CryptoTable = () => {
         console.log(field)
     };
 
-    const rows = data.map((row: RowData) => (
+    const rows = cryptoService.displayData.map((row: RowData) => (
         <Table.Tr key={row.name}>
             {columns.map((column) => {
                 return <Table.Td
@@ -207,6 +208,6 @@ const CryptoTable = () => {
             </Table>
         </ScrollArea>
     );
-}
+})
 
 export default CryptoTable;
