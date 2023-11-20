@@ -1,13 +1,14 @@
-import { Welcome } from '../components/Welcome/Welcome';
-import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
-
-if (!new class { x }().hasOwnProperty('x')) throw new Error('Transpiler is not configured correctly');
+import ColorSchemeToggle from "../components/ColorSchemeToggle/ColorSchemeToggle"
 
 export default function HomePage() {
   return (
     <>
-      <Welcome />
-      <ColorSchemeToggle />
+      <section>
+        Test
+      </section>
+      <section>
+        <ColorSchemeToggle/>
+      </section>
     </>
   );
 }
